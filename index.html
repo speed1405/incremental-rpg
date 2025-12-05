@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incremental RPG - Time Dungeon</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚔️ Time Dungeon ⚔️</h1>
+            <p class="subtitle">An Incremental RPG Through the Ages</p>
+        </header>
+
+        <div class="game-wrapper">
+            <!-- Player Stats Panel -->
+            <div class="panel player-panel">
+                <h2>Player Stats</h2>
+                <div class="stats-grid">
+                    <div class="stat">
+                        <span class="stat-label">Level:</span>
+                        <span id="player-level">1</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">HP:</span>
+                        <span id="player-hp">100</span>/<span id="player-max-hp">100</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Attack:</span>
+                        <span id="player-attack">10</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Defense:</span>
+                        <span id="player-defense">5</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Gold:</span>
+                        <span id="player-gold">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Total Kills:</span>
+                        <span id="total-kills">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Prestige Points:</span>
+                        <span id="prestige-points">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Skill Points:</span>
+                        <span id="skill-points">0</span>
+                    </div>
+                </div>
+                <div class="xp-bar-container">
+                    <div class="xp-bar" id="xp-bar"></div>
+                    <span class="xp-text" id="xp-text">XP: 0/100</span>
+                </div>
+            </div>
+
+            <!-- Current Era & Dungeon -->
+            <div class="panel era-panel">
+                <h2>Current Era</h2>
+                <div id="era-display" class="era-display">Stone Age</div>
+                <div class="dungeon-info">
+                    <p><strong>Dungeon:</strong> <span id="dungeon-name">Primitive Cave</span></p>
+                    <p><strong>Floor:</strong> <span id="dungeon-floor">1</span></p>
+                </div>
+            </div>
+
+            <!-- Combat Area -->
+            <div class="panel combat-panel">
+                <h2>Combat</h2>
+                <div id="enemy-container">
+                    <div class="enemy-info">
+                        <h3 id="enemy-name">Cave Rat</h3>
+                        <div class="hp-bar-container">
+                            <div class="hp-bar" id="enemy-hp-bar"></div>
+                            <span class="hp-text" id="enemy-hp-text">HP: 50/50</span>
+                        </div>
+                        <div class="enemy-stats">
+                            <span>ATK: <span id="enemy-attack">5</span></span>
+                            <span>DEF: <span id="enemy-defense">2</span></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="combat-buttons">
+                    <button id="attack-btn" class="btn btn-primary">Attack</button>
+                    <button id="auto-attack-btn" class="btn btn-secondary">Auto Attack: OFF</button>
+                    <button id="heal-btn" class="btn btn-success">Heal (50g)</button>
+                </div>
+                <div id="combat-log" class="combat-log"></div>
+            </div>
+
+            <!-- Tabs Navigation -->
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="inventory">Inventory</button>
+                <button class="tab-btn" data-tab="skill-tree">Skill Tree</button>
+                <button class="tab-btn" data-tab="research">Research</button>
+                <button class="tab-btn" data-tab="prestige">Prestige</button>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- Inventory Tab -->
+                <div id="inventory-tab" class="tab-pane active">
+                    <h2>Equipment</h2>
+                    <div class="equipment-grid">
+                        <div class="equipment-slot">
+                            <h3>Weapon</h3>
+                            <div id="weapon-slot" class="slot">
+                                <span class="empty-slot">Empty</span>
+                            </div>
+                        </div>
+                        <div class="equipment-slot">
+                            <h3>Armor</h3>
+                            <div id="armor-slot" class="slot">
+                                <span class="empty-slot">Empty</span>
+                            </div>
+                        </div>
+                        <div class="equipment-slot">
+                            <h3>Accessory</h3>
+                            <div id="accessory-slot" class="slot">
+                                <span class="empty-slot">Empty</span>
+                            </div>
+                        </div>
+                    </div>
+                    <h2>Shop</h2>
+                    <div id="shop-container" class="shop-grid"></div>
+                </div>
+
+                <!-- Skill Tree Tab -->
+                <div id="skill-tree-tab" class="tab-pane">
+                    <h2>Skill Tree</h2>
+                    <p class="info-text">Spend skill points earned from leveling up to unlock powerful skills!</p>
+                    <div id="skill-tree-container" class="skill-tree-grid"></div>
+                </div>
+
+                <!-- Research Tab -->
+                <div id="research-tab" class="tab-pane">
+                    <h2>Research Technologies</h2>
+                    <p class="info-text">Unlock new technologies to gain permanent bonuses!</p>
+                    <div id="research-container" class="research-grid"></div>
+                </div>
+
+                <!-- Prestige Tab -->
+                <div id="prestige-tab" class="tab-pane">
+                    <h2>Prestige System</h2>
+                    <p class="info-text">Reset your progress to gain permanent bonuses!</p>
+                    <div class="prestige-info">
+                        <p>Current Prestige Level: <span id="prestige-level">0</span></p>
+                        <p>Prestige Points Available: <span id="available-prestige-points">0</span></p>
+                        <p>Points on Next Prestige: <span id="next-prestige-points">1</span></p>
+                    </div>
+                    <button id="prestige-btn" class="btn btn-prestige">Prestige (Reset & Gain Points)</button>
+                    <h3>Prestige Upgrades</h3>
+                    <div id="prestige-upgrades-container" class="prestige-grid"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Controls -->
+        <div class="panel controls-panel">
+            <button id="save-btn" class="btn btn-info">💾 Save Game</button>
+            <button id="load-btn" class="btn btn-info">📁 Load Game</button>
+            <button id="reset-btn" class="btn btn-danger">🗑️ Reset Game</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
