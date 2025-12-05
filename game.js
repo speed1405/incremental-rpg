@@ -547,7 +547,7 @@ function renderShop() {
     
     const currentEraGear = gearData[gameState.player.currentEraIndex];
     
-    currentEraGear.forEach(item => {
+    currentEraGear.forEach((item, index) => {
         const div = document.createElement('div');
         div.className = 'shop-item';
         div.innerHTML = `
@@ -558,9 +558,18 @@ function renderShop() {
                 ${item.defense > 0 ? `Defense: +${item.defense}<br>` : ''}
             </div>
             <div class="shop-item-price">Cost: ${item.cost} gold</div>
-            <button class="btn btn-primary" onclick="buyItem(${JSON.stringify(item).replace(/"/g, '&quot;')})">Buy</button>
+            <button class="btn btn-primary buy-item-btn" data-item-index="${index}">Buy</button>
         `;
         container.appendChild(div);
+    });
+    
+    // Event delegation for buy buttons
+    container.querySelectorAll('.buy-item-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const itemIndex = parseInt(this.dataset.itemIndex);
+            const item = currentEraGear[itemIndex];
+            buyItem(item);
+        });
     });
 }
 
@@ -621,9 +630,17 @@ function renderSkillTree() {
             <div class="skill-node-cost">Cost: ${node.cost} SP</div>
             ${node.requires ? `<div class="skill-node-req">Requires: ${skillTreeNodes.find(n => n.id === node.requires)?.name}</div>` : ''}
             <div class="skill-node-bonus">${node.desc}</div>
-            ${!unlocked ? `<button class="btn btn-primary" onclick="unlockSkillNode('${node.id}')" ${!canUnlock ? 'disabled' : ''}>Unlock</button>` : '<span style="color: #4CAF50; font-weight: bold;">✓ Unlocked</span>'}
+            ${!unlocked ? `<button class="btn btn-primary unlock-skill-btn" data-node-id="${node.id}" ${!canUnlock ? 'disabled' : ''}>Unlock</button>` : '<span style="color: #4CAF50; font-weight: bold;">✓ Unlocked</span>'}
         `;
         container.appendChild(div);
+    });
+    
+    // Event delegation for unlock buttons
+    container.querySelectorAll('.unlock-skill-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const nodeId = this.dataset.nodeId;
+            unlockSkillNode(nodeId);
+        });
     });
 }
 
@@ -666,9 +683,17 @@ function renderResearch() {
             <h4>${res.name}</h4>
             <div class="research-cost">Cost: ${res.cost} gold</div>
             <div class="research-bonus">${res.desc}</div>
-            ${!researched ? `<button class="btn btn-primary" onclick="doResearch('${res.id}')" ${!canResearch ? 'disabled' : ''}>Research</button>` : '<span style="color: #2196F3; font-weight: bold;">✓ Researched</span>'}
+            ${!researched ? `<button class="btn btn-primary research-btn" data-research-id="${res.id}" ${!canResearch ? 'disabled' : ''}>Research</button>` : '<span style="color: #2196F3; font-weight: bold;">✓ Researched</span>'}
         `;
         container.appendChild(div);
+    });
+    
+    // Event delegation for research buttons
+    container.querySelectorAll('.research-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const resId = this.dataset.researchId;
+            doResearch(resId);
+        });
     });
 }
 
@@ -704,9 +729,17 @@ function renderPrestigeUpgrades() {
             <div class="prestige-upgrade-level">Level: ${currentLevel}/${upgrade.maxLevel}</div>
             <div class="prestige-upgrade-cost">Cost: ${upgrade.cost} PP</div>
             <div class="prestige-upgrade-bonus">${upgrade.desc}</div>
-            ${currentLevel < upgrade.maxLevel ? `<button class="btn btn-primary" onclick="buyPrestigeUpgrade('${upgrade.id}')" ${!canUpgrade ? 'disabled' : ''}>Upgrade</button>` : '<span style="color: #9C27B0; font-weight: bold;">MAX</span>'}
+            ${currentLevel < upgrade.maxLevel ? `<button class="btn btn-primary prestige-upgrade-btn" data-upgrade-id="${upgrade.id}" ${!canUpgrade ? 'disabled' : ''}>Upgrade</button>` : '<span style="color: #9C27B0; font-weight: bold;">MAX</span>'}
         `;
         container.appendChild(div);
+    });
+    
+    // Event delegation for prestige upgrade buttons
+    container.querySelectorAll('.prestige-upgrade-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const upgId = this.dataset.upgradeId;
+            buyPrestigeUpgrade(upgId);
+        });
     });
     
     updatePrestigeDisplay();
