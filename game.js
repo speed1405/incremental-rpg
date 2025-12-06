@@ -459,8 +459,6 @@ function enemyDefeated() {
         gameState.player.currentEraIndex++;
         gameState.player.currentDungeonFloor = 1;
         addLog(`<span class="log-kill">Entered new era: ${eras[gameState.player.currentEraIndex].name}!</span>`);
-        renderShop();
-        renderResearch();
     }
     
     spawnEnemy();
