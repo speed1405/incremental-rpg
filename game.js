@@ -378,6 +378,12 @@ function attack() {
     gameState.enemy.hp -= damage;
     addLog(`You deal <span class="log-damage">${damage}</span> damage to ${gameState.enemy.name}`);
     
+    // Add damage animation to enemy
+    animateEnemyDamage();
+    
+    // Update enemy HP bar
+    updateEnemyUI();
+    
     if (gameState.enemy.hp <= 0) {
         enemyDefeated();
         return;
@@ -390,6 +396,9 @@ function attack() {
     
     gameState.player.hp -= enemyDamage;
     addLog(`${gameState.enemy.name} deals <span class="log-damage">${enemyDamage}</span> damage to you`);
+    
+    // Add damage animation to player
+    animatePlayerDamage();
     
     if (gameState.player.hp <= 0) {
         gameState.player.hp = Math.floor(getPlayerStat('maxHp') * 0.5);
@@ -450,6 +459,9 @@ function levelUp() {
     gameState.skillPoints++;
     
     addLog(`<span class="log-heal">Level Up!</span> Now level ${gameState.player.level}. +1 Skill Point!`);
+    
+    // Add level up animation
+    animateLevelUp();
 }
 
 function toggleAutoAttack() {
@@ -469,7 +481,44 @@ function heal() {
     gameState.player.gold -= cost;
     gameState.player.hp = getPlayerStat('maxHp');
     addLog(`<span class="log-heal">Healed to full HP!</span> (-${cost} gold)`);
+    
+    // Add heal animation
+    animatePlayerHeal();
+    
     updateUI();
+}
+
+// Animation functions
+function animateEnemyDamage() {
+    const enemyInfo = document.getElementById('enemy-container');
+    enemyInfo.classList.add('taking-damage');
+    setTimeout(() => {
+        enemyInfo.classList.remove('taking-damage');
+    }, 500);
+}
+
+function animatePlayerDamage() {
+    const playerPanel = document.querySelector('.player-panel');
+    playerPanel.classList.add('taking-damage');
+    setTimeout(() => {
+        playerPanel.classList.remove('taking-damage');
+    }, 400);
+}
+
+function animatePlayerHeal() {
+    const playerPanel = document.querySelector('.player-panel');
+    playerPanel.classList.add('healing');
+    setTimeout(() => {
+        playerPanel.classList.remove('healing');
+    }, 800);
+}
+
+function animateLevelUp() {
+    const playerPanel = document.querySelector('.player-panel');
+    playerPanel.classList.add('level-up-glow');
+    setTimeout(() => {
+        playerPanel.classList.remove('level-up-glow');
+    }, 1000);
 }
 
 // Get player stat with bonuses
@@ -843,6 +892,21 @@ function updateUI() {
     document.getElementById('prestige-points').textContent = gameState.prestige.points;
     document.getElementById('skill-points').textContent = gameState.skillPoints;
     
+    // Player HP bar
+    const playerMaxHp = getPlayerStat('maxHp');
+    const playerHpPercent = (gameState.player.hp / playerMaxHp) * 100;
+    const playerHpBar = document.getElementById('player-hp-bar');
+    playerHpBar.style.width = `${playerHpPercent}%`;
+    document.getElementById('player-hp-bar-text').textContent = `HP: ${Math.max(0, Math.floor(gameState.player.hp))}/${playerMaxHp}`;
+    
+    // Update player HP bar color based on health percentage
+    playerHpBar.classList.remove('low-health', 'critical-health');
+    if (playerHpPercent <= 25) {
+        playerHpBar.classList.add('critical-health');
+    } else if (playerHpPercent <= 50) {
+        playerHpBar.classList.add('low-health');
+    }
+    
     // XP bar
     const xpPercent = (gameState.player.xp / gameState.player.xpNeeded) * 100;
     document.getElementById('xp-bar').style.width = `${xpPercent}%`;
@@ -866,8 +930,17 @@ function updateEnemyUI() {
     document.getElementById('enemy-defense').textContent = gameState.enemy.defense;
     
     const hpPercent = (gameState.enemy.hp / gameState.enemy.maxHp) * 100;
-    document.getElementById('enemy-hp-bar').style.width = `${hpPercent}%`;
+    const enemyHpBar = document.getElementById('enemy-hp-bar');
+    enemyHpBar.style.width = `${hpPercent}%`;
     document.getElementById('enemy-hp-text').textContent = `HP: ${Math.max(0, Math.floor(gameState.enemy.hp))}/${gameState.enemy.maxHp}`;
+    
+    // Update enemy HP bar color based on health percentage
+    enemyHpBar.classList.remove('low-health', 'critical-health');
+    if (hpPercent <= 25) {
+        enemyHpBar.classList.add('critical-health');
+    } else if (hpPercent <= 50) {
+        enemyHpBar.classList.add('low-health');
+    }
 }
 
 function addLog(message) {

@@ -92,7 +92,8 @@ header h1 {
     background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%);
     height: 100%;
     width: 0%;
-    transition: width 0.3s ease;
+    transition: width 0.5s ease-out;
+    box-shadow: inset 0 2px 8px rgba(255, 255, 255, 0.3);
 }
 
 .xp-text {
@@ -142,13 +143,26 @@ header h1 {
     height: 30px;
     overflow: hidden;
     margin-bottom: 10px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .hp-bar {
     background: linear-gradient(90deg, #f44336 0%, #e91e63 100%);
     height: 100%;
     width: 100%;
-    transition: width 0.3s ease;
+    transition: width 0.5s ease-out, background 0.3s ease;
+    box-shadow: inset 0 2px 8px rgba(255, 255, 255, 0.3);
+}
+
+/* Low health warning colors */
+.hp-bar.low-health {
+    background: linear-gradient(90deg, #ff9800 0%, #ff5722 100%);
+    animation: pulse-warning 1.5s ease-in-out infinite;
+}
+
+.hp-bar.critical-health {
+    background: linear-gradient(90deg, #f44336 0%, #d32f2f 100%);
+    animation: pulse-critical 1s ease-in-out infinite;
 }
 
 .hp-text {
@@ -635,6 +649,156 @@ header h1 {
     font-weight: bold;
     color: #4CAF50;
     margin-bottom: 10px;
+}
+
+/* Animation Keyframes */
+@keyframes pulse-warning {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+@keyframes pulse-critical {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+@keyframes damage-shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-5px);
+    }
+    75% {
+        transform: translateX(5px);
+    }
+}
+
+@keyframes heal-glow {
+    0% {
+        box-shadow: 0 0 0 rgba(76, 175, 80, 0);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(76, 175, 80, 0.8);
+    }
+    100% {
+        box-shadow: 0 0 0 rgba(76, 175, 80, 0);
+    }
+}
+
+@keyframes damage-flash {
+    0% {
+        background-color: rgba(244, 67, 54, 0);
+    }
+    50% {
+        background-color: rgba(244, 67, 54, 0.3);
+    }
+    100% {
+        background-color: rgba(244, 67, 54, 0);
+    }
+}
+
+@keyframes level-up-glow {
+    0% {
+        box-shadow: 0 0 0 rgba(255, 215, 0, 0);
+    }
+    50% {
+        box-shadow: 0 0 30px rgba(255, 215, 0, 0.9);
+    }
+    100% {
+        box-shadow: 0 0 0 rgba(255, 215, 0, 0);
+    }
+}
+
+/* Animation utility classes */
+.damage-shake {
+    animation: damage-shake 0.4s ease-in-out;
+}
+
+.heal-glow {
+    animation: heal-glow 0.8s ease-in-out;
+}
+
+.damage-flash {
+    animation: damage-flash 0.5s ease-in-out;
+}
+
+.level-up-glow {
+    animation: level-up-glow 1s ease-in-out;
+}
+
+/* Enhanced enemy info styling */
+.enemy-info {
+    background: #ffe6e6;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+.enemy-info.taking-damage {
+    animation: damage-flash 0.5s ease-in-out;
+}
+
+/* Enhanced player panel styling */
+.player-panel {
+    grid-column: 1;
+    transition: all 0.3s ease;
+}
+
+.player-panel.taking-damage {
+    animation: damage-shake 0.4s ease-in-out;
+}
+
+.player-panel.healing {
+    animation: heal-glow 0.8s ease-in-out;
+}
+
+/* Player HP bar styling */
+.player-hp-bar-container {
+    position: relative;
+    background: #ddd;
+    border-radius: 10px;
+    height: 30px;
+    overflow: hidden;
+    margin-bottom: 15px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.player-hp-bar {
+    background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%);
+    height: 100%;
+    width: 100%;
+    transition: width 0.5s ease-out, background 0.3s ease;
+    box-shadow: inset 0 2px 8px rgba(255, 255, 255, 0.3);
+}
+
+.player-hp-bar.low-health {
+    background: linear-gradient(90deg, #ff9800 0%, #ff5722 100%);
+    animation: pulse-warning 1.5s ease-in-out infinite;
+}
+
+.player-hp-bar.critical-health {
+    background: linear-gradient(90deg, #f44336 0%, #d32f2f 100%);
+    animation: pulse-critical 1s ease-in-out infinite;
+}
+
+.player-hp-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-weight: bold;
+    color: #333;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 /* Responsive design */
