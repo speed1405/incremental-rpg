@@ -922,11 +922,16 @@ function updateUI() {
     const playerMaxHp = getPlayerStat('maxHp');
     const playerHpPercent = (gameState.player.hp / playerMaxHp) * 100;
     const playerHpBar = document.getElementById('player-hp-bar');
-    playerHpBar.style.width = `${playerHpPercent}%`;
-    document.getElementById('player-hp-bar-text').textContent = `HP: ${Math.max(0, Math.floor(gameState.player.hp))}/${playerMaxHp}`;
+    const playerHpBarText = document.getElementById('player-hp-bar-text');
     
-    // Update player HP bar color based on health percentage
-    updateHealthBarState(playerHpBar, playerHpPercent / 100);
+    if (playerHpBar) {
+        playerHpBar.style.width = `${playerHpPercent}%`;
+        updateHealthBarState(playerHpBar, playerHpPercent / 100);
+    }
+    
+    if (playerHpBarText) {
+        playerHpBarText.textContent = `HP: ${Math.max(0, Math.floor(gameState.player.hp))}/${playerMaxHp}`;
+    }
     
     // XP bar
     const xpPercent = (gameState.player.xp / gameState.player.xpNeeded) * 100;
@@ -952,11 +957,16 @@ function updateEnemyUI() {
     
     const hpPercent = (gameState.enemy.hp / gameState.enemy.maxHp) * 100;
     const enemyHpBar = document.getElementById('enemy-hp-bar');
-    enemyHpBar.style.width = `${hpPercent}%`;
-    document.getElementById('enemy-hp-text').textContent = `HP: ${Math.max(0, Math.floor(gameState.enemy.hp))}/${gameState.enemy.maxHp}`;
+    const enemyHpText = document.getElementById('enemy-hp-text');
     
-    // Update enemy HP bar color based on health percentage
-    updateHealthBarState(enemyHpBar, hpPercent / 100);
+    if (enemyHpBar) {
+        enemyHpBar.style.width = `${hpPercent}%`;
+        updateHealthBarState(enemyHpBar, hpPercent / 100);
+    }
+    
+    if (enemyHpText) {
+        enemyHpText.textContent = `HP: ${Math.max(0, Math.floor(gameState.enemy.hp))}/${gameState.enemy.maxHp}`;
+    }
 }
 
 function addLog(message) {
