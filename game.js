@@ -1,3 +1,16 @@
+// Game Constants
+const HEALTH_THRESHOLDS = {
+    LOW: 0.5,      // 50%
+    CRITICAL: 0.25 // 25%
+};
+
+const ANIMATION_DURATIONS = {
+    DAMAGE_FLASH: 500,  // milliseconds
+    DAMAGE_SHAKE: 400,
+    HEAL_GLOW: 800,
+    LEVEL_UP: 1000
+};
+
 // Game State
 const gameState = {
     player: {
@@ -371,6 +384,9 @@ function spawnEnemy() {
 function attack() {
     if (!gameState.enemy) return;
     
+    // Add player attack animation
+    animatePlayerAttack();
+    
     const playerAttack = getPlayerStat('attack');
     const enemyDefense = gameState.enemy.defense;
     const damage = Math.max(1, playerAttack - enemyDefense);
@@ -378,26 +394,43 @@ function attack() {
     gameState.enemy.hp -= damage;
     addLog(`You deal <span class="log-damage">${damage}</span> damage to ${gameState.enemy.name}`);
     
+    // Add damage animation to enemy
+    setTimeout(() => {
+        animateEnemyDamage();
+    }, 300); // Delay to sync with attack animation
+    
+    // Update enemy HP bar
+    updateEnemyUI();
+    
     if (gameState.enemy.hp <= 0) {
         enemyDefeated();
         return;
     }
     
     // Enemy counter-attack
-    const enemyAttack = gameState.enemy.attack;
-    const playerDefense = getPlayerStat('defense');
-    const enemyDamage = Math.max(1, enemyAttack - playerDefense);
-    
-    gameState.player.hp -= enemyDamage;
-    addLog(`${gameState.enemy.name} deals <span class="log-damage">${enemyDamage}</span> damage to you`);
-    
-    if (gameState.player.hp <= 0) {
-        gameState.player.hp = Math.floor(getPlayerStat('maxHp') * 0.5);
-        gameState.player.gold = Math.floor(gameState.player.gold * 0.9);
-        addLog(`<span class="log-damage">You were defeated!</span> Lost 10% gold and respawned with 50% HP`);
-    }
-    
-    updateUI();
+    setTimeout(() => {
+        animateEnemyAttack();
+        
+        const enemyAttack = gameState.enemy.attack;
+        const playerDefense = getPlayerStat('defense');
+        const enemyDamage = Math.max(1, enemyAttack - playerDefense);
+        
+        gameState.player.hp -= enemyDamage;
+        addLog(`${gameState.enemy.name} deals <span class="log-damage">${enemyDamage}</span> damage to you`);
+        
+        // Add damage animation to player
+        setTimeout(() => {
+            animatePlayerDamage();
+        }, 300);
+        
+        if (gameState.player.hp <= 0) {
+            gameState.player.hp = Math.floor(getPlayerStat('maxHp') * 0.5);
+            gameState.player.gold = Math.floor(gameState.player.gold * 0.9);
+            addLog(`<span class="log-damage">You were defeated!</span> Lost 10% gold and respawned with 50% HP`);
+        }
+        
+        updateUI();
+    }, 600); // Delay for enemy counter-attack
 }
 
 function enemyDefeated() {
@@ -450,6 +483,9 @@ function levelUp() {
     gameState.skillPoints++;
     
     addLog(`<span class="log-heal">Level Up!</span> Now level ${gameState.player.level}. +1 Skill Point!`);
+    
+    // Add level up animation
+    animateLevelUp();
 }
 
 function toggleAutoAttack() {
@@ -469,7 +505,71 @@ function heal() {
     gameState.player.gold -= cost;
     gameState.player.hp = getPlayerStat('maxHp');
     addLog(`<span class="log-heal">Healed to full HP!</span> (-${cost} gold)`);
+    
+    // Add heal animation
+    animatePlayerHeal();
+    
     updateUI();
+}
+
+// Animation functions
+function animateEnemyDamage() {
+    const enemyInfo = document.querySelector('.enemy-info');
+    if (enemyInfo) {
+        enemyInfo.classList.add('taking-damage');
+        setTimeout(() => {
+            enemyInfo.classList.remove('taking-damage');
+        }, ANIMATION_DURATIONS.DAMAGE_FLASH);
+    }
+}
+
+function animateEnemyAttack() {
+    const enemyInfo = document.querySelector('.enemy-info');
+    if (enemyInfo) {
+        enemyInfo.classList.add('attacking');
+        setTimeout(() => {
+            enemyInfo.classList.remove('attacking');
+        }, 600);
+    }
+}
+
+// Helper function to animate player panel with a CSS class
+function animatePlayerPanel(className, duration) {
+    const playerPanel = document.querySelector('.player-panel');
+    if (playerPanel) {
+        playerPanel.classList.add(className);
+        setTimeout(() => {
+            playerPanel.classList.remove(className);
+        }, duration);
+    }
+}
+
+function animatePlayerDamage() {
+    animatePlayerPanel('taking-damage', ANIMATION_DURATIONS.DAMAGE_SHAKE);
+}
+
+function animatePlayerAttack() {
+    animatePlayerPanel('attacking', 600);
+}
+
+function animatePlayerHeal() {
+    animatePlayerPanel('healing', ANIMATION_DURATIONS.HEAL_GLOW);
+}
+
+function animateLevelUp() {
+    animatePlayerPanel('level-up-glow', ANIMATION_DURATIONS.LEVEL_UP);
+}
+
+// Helper function to update health bar state based on percentage
+function updateHealthBarState(healthBar, healthPercentage) {
+    if (!healthBar) return;
+    
+    healthBar.classList.remove('low-health', 'critical-health');
+    if (healthPercentage <= HEALTH_THRESHOLDS.CRITICAL) {
+        healthBar.classList.add('critical-health');
+    } else if (healthPercentage <= HEALTH_THRESHOLDS.LOW) {
+        healthBar.classList.add('low-health');
+    }
 }
 
 // Get player stat with bonuses
@@ -843,6 +943,21 @@ function updateUI() {
     document.getElementById('prestige-points').textContent = gameState.prestige.points;
     document.getElementById('skill-points').textContent = gameState.skillPoints;
     
+    // Player HP bar
+    const playerMaxHp = getPlayerStat('maxHp');
+    const playerHpPercent = (gameState.player.hp / playerMaxHp) * 100;
+    const playerHpBar = document.getElementById('player-hp-bar');
+    const playerHpBarText = document.getElementById('player-hp-bar-text');
+    
+    if (playerHpBar) {
+        playerHpBar.style.width = `${playerHpPercent}%`;
+        updateHealthBarState(playerHpBar, playerHpPercent / 100);
+    }
+    
+    if (playerHpBarText) {
+        playerHpBarText.textContent = `HP: ${Math.max(0, Math.floor(gameState.player.hp))}/${playerMaxHp}`;
+    }
+    
     // XP bar
     const xpPercent = (gameState.player.xp / gameState.player.xpNeeded) * 100;
     document.getElementById('xp-bar').style.width = `${xpPercent}%`;
@@ -866,8 +981,17 @@ function updateEnemyUI() {
     document.getElementById('enemy-defense').textContent = gameState.enemy.defense;
     
     const hpPercent = (gameState.enemy.hp / gameState.enemy.maxHp) * 100;
-    document.getElementById('enemy-hp-bar').style.width = `${hpPercent}%`;
-    document.getElementById('enemy-hp-text').textContent = `HP: ${Math.max(0, Math.floor(gameState.enemy.hp))}/${gameState.enemy.maxHp}`;
+    const enemyHpBar = document.getElementById('enemy-hp-bar');
+    const enemyHpText = document.getElementById('enemy-hp-text');
+    
+    if (enemyHpBar) {
+        enemyHpBar.style.width = `${hpPercent}%`;
+        updateHealthBarState(enemyHpBar, hpPercent / 100);
+    }
+    
+    if (enemyHpText) {
+        enemyHpText.textContent = `HP: ${Math.max(0, Math.floor(gameState.enemy.hp))}/${gameState.enemy.maxHp}`;
+    }
 }
 
 function addLog(message) {
