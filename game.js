@@ -4,6 +4,13 @@ const HEALTH_THRESHOLDS = {
     CRITICAL: 0.25 // 25%
 };
 
+const ANIMATION_DURATIONS = {
+    DAMAGE_FLASH: 500,  // milliseconds
+    DAMAGE_SHAKE: 400,
+    HEAL_GLOW: 800,
+    LEVEL_UP: 1000
+};
+
 // Game State
 const gameState = {
     player: {
@@ -501,36 +508,37 @@ function animateEnemyDamage() {
         enemyInfo.classList.add('taking-damage');
         setTimeout(() => {
             enemyInfo.classList.remove('taking-damage');
-        }, 500);
+        }, ANIMATION_DURATIONS.DAMAGE_FLASH);
+    }
+}
+
+// Helper function to animate player panel with a CSS class
+function animatePlayerPanel(className, duration) {
+    const playerPanel = document.querySelector('.player-panel');
+    if (playerPanel) {
+        playerPanel.classList.add(className);
+        setTimeout(() => {
+            playerPanel.classList.remove(className);
+        }, duration);
     }
 }
 
 function animatePlayerDamage() {
-    const playerPanel = document.querySelector('.player-panel');
-    playerPanel.classList.add('taking-damage');
-    setTimeout(() => {
-        playerPanel.classList.remove('taking-damage');
-    }, 400);
+    animatePlayerPanel('taking-damage', ANIMATION_DURATIONS.DAMAGE_SHAKE);
 }
 
 function animatePlayerHeal() {
-    const playerPanel = document.querySelector('.player-panel');
-    playerPanel.classList.add('healing');
-    setTimeout(() => {
-        playerPanel.classList.remove('healing');
-    }, 800);
+    animatePlayerPanel('healing', ANIMATION_DURATIONS.HEAL_GLOW);
 }
 
 function animateLevelUp() {
-    const playerPanel = document.querySelector('.player-panel');
-    playerPanel.classList.add('level-up-glow');
-    setTimeout(() => {
-        playerPanel.classList.remove('level-up-glow');
-    }, 1000);
+    animatePlayerPanel('level-up-glow', ANIMATION_DURATIONS.LEVEL_UP);
 }
 
 // Helper function to update health bar state based on percentage
 function updateHealthBarState(healthBar, healthPercentage) {
+    if (!healthBar) return;
+    
     healthBar.classList.remove('low-health', 'critical-health');
     if (healthPercentage <= HEALTH_THRESHOLDS.CRITICAL) {
         healthBar.classList.add('critical-health');
