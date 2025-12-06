@@ -1,3 +1,9 @@
+// Game Constants
+const HEALTH_THRESHOLDS = {
+    LOW: 0.5,      // 50%
+    CRITICAL: 0.25 // 25%
+};
+
 // Game State
 const gameState = {
     player: {
@@ -490,11 +496,13 @@ function heal() {
 
 // Animation functions
 function animateEnemyDamage() {
-    const enemyInfo = document.getElementById('enemy-container');
-    enemyInfo.classList.add('taking-damage');
-    setTimeout(() => {
-        enemyInfo.classList.remove('taking-damage');
-    }, 500);
+    const enemyInfo = document.querySelector('.enemy-info');
+    if (enemyInfo) {
+        enemyInfo.classList.add('taking-damage');
+        setTimeout(() => {
+            enemyInfo.classList.remove('taking-damage');
+        }, 500);
+    }
 }
 
 function animatePlayerDamage() {
@@ -519,6 +527,16 @@ function animateLevelUp() {
     setTimeout(() => {
         playerPanel.classList.remove('level-up-glow');
     }, 1000);
+}
+
+// Helper function to update health bar state based on percentage
+function updateHealthBarState(healthBar, healthPercentage) {
+    healthBar.classList.remove('low-health', 'critical-health');
+    if (healthPercentage <= HEALTH_THRESHOLDS.CRITICAL) {
+        healthBar.classList.add('critical-health');
+    } else if (healthPercentage <= HEALTH_THRESHOLDS.LOW) {
+        healthBar.classList.add('low-health');
+    }
 }
 
 // Get player stat with bonuses
@@ -900,12 +918,7 @@ function updateUI() {
     document.getElementById('player-hp-bar-text').textContent = `HP: ${Math.max(0, Math.floor(gameState.player.hp))}/${playerMaxHp}`;
     
     // Update player HP bar color based on health percentage
-    playerHpBar.classList.remove('low-health', 'critical-health');
-    if (playerHpPercent <= 25) {
-        playerHpBar.classList.add('critical-health');
-    } else if (playerHpPercent <= 50) {
-        playerHpBar.classList.add('low-health');
-    }
+    updateHealthBarState(playerHpBar, playerHpPercent / 100);
     
     // XP bar
     const xpPercent = (gameState.player.xp / gameState.player.xpNeeded) * 100;
@@ -935,12 +948,7 @@ function updateEnemyUI() {
     document.getElementById('enemy-hp-text').textContent = `HP: ${Math.max(0, Math.floor(gameState.enemy.hp))}/${gameState.enemy.maxHp}`;
     
     // Update enemy HP bar color based on health percentage
-    enemyHpBar.classList.remove('low-health', 'critical-health');
-    if (hpPercent <= 25) {
-        enemyHpBar.classList.add('critical-health');
-    } else if (hpPercent <= 50) {
-        enemyHpBar.classList.add('low-health');
-    }
+    updateHealthBarState(enemyHpBar, hpPercent / 100);
 }
 
 function addLog(message) {

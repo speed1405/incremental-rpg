@@ -1,3 +1,15 @@
+:root {
+    /* Health bar colors */
+    --health-normal-start: #4CAF50;
+    --health-normal-end: #8BC34A;
+    --health-low-start: #ff9800;
+    --health-low-end: #ff5722;
+    --health-critical-start: #f44336;
+    --health-critical-end: #d32f2f;
+    --enemy-health-start: #f44336;
+    --enemy-health-end: #e91e63;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -89,7 +101,7 @@ header h1 {
 }
 
 .xp-bar {
-    background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%);
+    background: linear-gradient(90deg, var(--health-normal-start) 0%, var(--health-normal-end) 100%);
     height: 100%;
     width: 0%;
     transition: width 0.5s ease-out;
@@ -147,7 +159,7 @@ header h1 {
 }
 
 .hp-bar {
-    background: linear-gradient(90deg, #f44336 0%, #e91e63 100%);
+    background: linear-gradient(90deg, var(--enemy-health-start) 0%, var(--enemy-health-end) 100%);
     height: 100%;
     width: 100%;
     transition: width 0.5s ease-out, background 0.3s ease;
@@ -156,12 +168,12 @@ header h1 {
 
 /* Low health warning colors */
 .hp-bar.low-health {
-    background: linear-gradient(90deg, #ff9800 0%, #ff5722 100%);
+    background: linear-gradient(90deg, var(--health-low-start) 0%, var(--health-low-end) 100%);
     animation: pulse-warning 1.5s ease-in-out infinite;
 }
 
 .hp-bar.critical-health {
-    background: linear-gradient(90deg, #f44336 0%, #d32f2f 100%);
+    background: linear-gradient(90deg, var(--health-critical-start) 0%, var(--health-critical-end) 100%);
     animation: pulse-critical 1s ease-in-out infinite;
 }
 
@@ -774,7 +786,7 @@ header h1 {
 }
 
 .player-hp-bar {
-    background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%);
+    background: linear-gradient(90deg, var(--health-normal-start) 0%, var(--health-normal-end) 100%);
     height: 100%;
     width: 100%;
     transition: width 0.5s ease-out, background 0.3s ease;
@@ -782,12 +794,12 @@ header h1 {
 }
 
 .player-hp-bar.low-health {
-    background: linear-gradient(90deg, #ff9800 0%, #ff5722 100%);
+    background: linear-gradient(90deg, var(--health-low-start) 0%, var(--health-low-end) 100%);
     animation: pulse-warning 1.5s ease-in-out infinite;
 }
 
 .player-hp-bar.critical-health {
-    background: linear-gradient(90deg, #f44336 0%, #d32f2f 100%);
+    background: linear-gradient(90deg, var(--health-critical-start) 0%, var(--health-critical-end) 100%);
     animation: pulse-critical 1s ease-in-out infinite;
 }
 
