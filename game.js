@@ -466,6 +466,8 @@ function enemyDefeated() {
     spawnEnemy();
     updateUI();
     renderSkillTree();
+    renderResearch();
+    renderShop();
 }
 
 function levelUp() {
@@ -510,6 +512,8 @@ function heal() {
     animatePlayerHeal();
     
     updateUI();
+    renderResearch();
+    renderShop();
 }
 
 // Animation functions
@@ -684,6 +688,8 @@ function buyItem(item) {
     addLog(`Purchased ${item.name}!`);
     updateUI();
     updateEquipmentDisplay();
+    renderResearch();
+    renderShop();
 }
 
 function updateEquipmentDisplay() {
