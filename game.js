@@ -384,6 +384,9 @@ function spawnEnemy() {
 function attack() {
     if (!gameState.enemy) return;
     
+    // Add player attack animation
+    animatePlayerAttack();
+    
     const playerAttack = getPlayerStat('attack');
     const enemyDefense = gameState.enemy.defense;
     const damage = Math.max(1, playerAttack - enemyDefense);
@@ -392,7 +395,9 @@ function attack() {
     addLog(`You deal <span class="log-damage">${damage}</span> damage to ${gameState.enemy.name}`);
     
     // Add damage animation to enemy
-    animateEnemyDamage();
+    setTimeout(() => {
+        animateEnemyDamage();
+    }, 300); // Delay to sync with attack animation
     
     // Update enemy HP bar
     updateEnemyUI();
@@ -403,23 +408,29 @@ function attack() {
     }
     
     // Enemy counter-attack
-    const enemyAttack = gameState.enemy.attack;
-    const playerDefense = getPlayerStat('defense');
-    const enemyDamage = Math.max(1, enemyAttack - playerDefense);
-    
-    gameState.player.hp -= enemyDamage;
-    addLog(`${gameState.enemy.name} deals <span class="log-damage">${enemyDamage}</span> damage to you`);
-    
-    // Add damage animation to player
-    animatePlayerDamage();
-    
-    if (gameState.player.hp <= 0) {
-        gameState.player.hp = Math.floor(getPlayerStat('maxHp') * 0.5);
-        gameState.player.gold = Math.floor(gameState.player.gold * 0.9);
-        addLog(`<span class="log-damage">You were defeated!</span> Lost 10% gold and respawned with 50% HP`);
-    }
-    
-    updateUI();
+    setTimeout(() => {
+        animateEnemyAttack();
+        
+        const enemyAttack = gameState.enemy.attack;
+        const playerDefense = getPlayerStat('defense');
+        const enemyDamage = Math.max(1, enemyAttack - playerDefense);
+        
+        gameState.player.hp -= enemyDamage;
+        addLog(`${gameState.enemy.name} deals <span class="log-damage">${enemyDamage}</span> damage to you`);
+        
+        // Add damage animation to player
+        setTimeout(() => {
+            animatePlayerDamage();
+        }, 300);
+        
+        if (gameState.player.hp <= 0) {
+            gameState.player.hp = Math.floor(getPlayerStat('maxHp') * 0.5);
+            gameState.player.gold = Math.floor(gameState.player.gold * 0.9);
+            addLog(`<span class="log-damage">You were defeated!</span> Lost 10% gold and respawned with 50% HP`);
+        }
+        
+        updateUI();
+    }, 600); // Delay for enemy counter-attack
 }
 
 function enemyDefeated() {
@@ -512,6 +523,16 @@ function animateEnemyDamage() {
     }
 }
 
+function animateEnemyAttack() {
+    const enemyInfo = document.querySelector('.enemy-info');
+    if (enemyInfo) {
+        enemyInfo.classList.add('attacking');
+        setTimeout(() => {
+            enemyInfo.classList.remove('attacking');
+        }, 600);
+    }
+}
+
 // Helper function to animate player panel with a CSS class
 function animatePlayerPanel(className, duration) {
     const playerPanel = document.querySelector('.player-panel');
@@ -525,6 +546,10 @@ function animatePlayerPanel(className, duration) {
 
 function animatePlayerDamage() {
     animatePlayerPanel('taking-damage', ANIMATION_DURATIONS.DAMAGE_SHAKE);
+}
+
+function animatePlayerAttack() {
+    animatePlayerPanel('attacking', 600);
 }
 
 function animatePlayerHeal() {
