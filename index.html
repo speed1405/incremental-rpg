@@ -84,6 +84,7 @@
                         <div class="enemy-stats">
                             <span>ATK: <span id="enemy-attack">5</span></span>
                             <span>DEF: <span id="enemy-defense">2</span></span>
+                            <span>Element: <span id="enemy-element">⚔️ physical</span></span>
                         </div>
                     </div>
                 </div>
@@ -91,6 +92,11 @@
                     <button id="attack-btn" class="btn btn-primary">Attack</button>
                     <button id="auto-attack-btn" class="btn btn-secondary">Auto Attack: OFF</button>
                     <button id="heal-btn" class="btn btn-success">Heal (50g)</button>
+                </div>
+                <div class="ability-buttons">
+                    <button id="powerStrike-btn" class="btn btn-ability">🔒 Power Strike</button>
+                    <button id="shieldBash-btn" class="btn btn-ability">🔒 Shield Bash</button>
+                    <button id="healingLight-btn" class="btn btn-ability">🔒 Healing Light</button>
                 </div>
                 <div id="combat-log" class="combat-log"></div>
             </div>
@@ -100,7 +106,10 @@
                 <button class="tab-btn active" data-tab="inventory">Inventory</button>
                 <button class="tab-btn" data-tab="skill-tree">Skill Tree</button>
                 <button class="tab-btn" data-tab="research">Research</button>
+                <button class="tab-btn" data-tab="achievements">Achievements</button>
+                <button class="tab-btn" data-tab="companions">Companions</button>
                 <button class="tab-btn" data-tab="prestige">Prestige</button>
+                <button class="tab-btn" data-tab="ascension">Ascension</button>
             </div>
 
             <!-- Tab Content -->
@@ -158,6 +167,34 @@
                     <button id="prestige-btn" class="btn btn-prestige">Prestige (Reset & Gain Points)</button>
                     <h3>Prestige Upgrades</h3>
                     <div id="prestige-upgrades-container" class="prestige-grid"></div>
+                </div>
+
+                <!-- Achievements Tab -->
+                <div id="achievements-tab" class="tab-pane">
+                    <h2>Achievements</h2>
+                    <p class="info-text">Complete milestones to earn rewards!</p>
+                    <div id="achievements-container" class="achievements-grid"></div>
+                </div>
+
+                <!-- Companions Tab -->
+                <div id="companions-tab" class="tab-pane">
+                    <h2>Companions</h2>
+                    <p class="info-text">Purchase and equip companions to gain powerful bonuses!</p>
+                    <div id="companions-container" class="companions-grid"></div>
+                </div>
+
+                <!-- Ascension Tab -->
+                <div id="ascension-tab" class="tab-pane">
+                    <h2>Ascension System</h2>
+                    <p class="info-text">The ultimate reset for massive permanent bonuses! Requires 5+ Prestige levels.</p>
+                    <div class="ascension-info">
+                        <p>Current Ascension Level: <span id="ascension-level">0</span></p>
+                        <p>Ascension Points Available: <span id="available-ascension-points">0</span></p>
+                        <p>Points on Next Ascension: <span id="next-ascension-points">1</span></p>
+                    </div>
+                    <button id="ascend-btn" class="btn btn-ascension">Ascend (Reset All & Gain Ascension Points)</button>
+                    <h3>Ascension Upgrades</h3>
+                    <div id="ascension-upgrades-container" class="ascension-grid"></div>
                 </div>
             </div>
         </div>

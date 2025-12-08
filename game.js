@@ -11,6 +11,38 @@ const ANIMATION_DURATIONS = {
     LEVEL_UP: 1000
 };
 
+// Elemental Types
+const ELEMENT_TYPES = {
+    PHYSICAL: 'physical',
+    FIRE: 'fire',
+    ICE: 'ice',
+    LIGHTNING: 'lightning',
+    POISON: 'poison'
+};
+
+// Combat Abilities
+const ABILITIES = {
+    powerStrike: { 
+        name: "Power Strike", 
+        cooldown: 5000, 
+        damage: 2.5, 
+        desc: "Deal 250% damage" 
+    },
+    shieldBash: { 
+        name: "Shield Bash", 
+        cooldown: 8000, 
+        stun: 2000, 
+        damage: 1.5, 
+        desc: "Deal 150% damage and stun enemy for 2s" 
+    },
+    healingLight: { 
+        name: "Healing Light", 
+        cooldown: 10000, 
+        heal: 0.3, 
+        desc: "Heal 30% of max HP" 
+    }
+};
+
 // Game State
 const gameState = {
     player: {
@@ -29,7 +61,20 @@ const gameState = {
             weapon: null,
             armor: null,
             accessory: null
-        }
+        },
+        // Combat enhancements
+        critChance: 0.1,
+        critDamage: 2.0,
+        dodgeChance: 0.05,
+        comboCount: 0,
+        elementalResistances: {
+            fire: 0,
+            ice: 0,
+            lightning: 0,
+            poison: 0
+        },
+        // Companions
+        companion: null
     },
     enemy: null,
     autoAttack: false,
@@ -40,7 +85,25 @@ const gameState = {
         level: 0,
         points: 0,
         upgrades: {}
-    }
+    },
+    // New systems
+    abilities: {
+        powerStrike: { unlocked: false, lastUsed: 0 },
+        shieldBash: { unlocked: false, lastUsed: 0 },
+        healingLight: { unlocked: false, lastUsed: 0 }
+    },
+    achievements: {},
+    quests: {
+        daily: [],
+        weekly: []
+    },
+    ascension: {
+        level: 0,
+        points: 0,
+        upgrades: {}
+    },
+    factions: {},
+    companions: []
 };
 
 // Era definitions
@@ -258,7 +321,12 @@ const skillTreeNodes = [
     
     { id: "critical", name: "Critical Strike", cost: 2, bonus: { attack: 15, critChance: 0.1 }, desc: "+15 ATK, +10% Crit", requires: null },
     { id: "lifesteal", name: "Life Steal", cost: 2, bonus: { lifesteal: 0.1 }, desc: "Heal 10% of damage", requires: null },
-    { id: "dodge", name: "Dodge", cost: 2, bonus: { dodgeChance: 0.1 }, desc: "+10% Dodge Chance", requires: null }
+    { id: "dodge", name: "Dodge", cost: 2, bonus: { dodgeChance: 0.1 }, desc: "+10% Dodge Chance", requires: null },
+    
+    // Abilities
+    { id: "ability_power", name: "Unlock: Power Strike", cost: 3, bonus: {}, desc: "Unlocks Power Strike ability", requires: "warrior2", ability: "powerStrike" },
+    { id: "ability_shield", name: "Unlock: Shield Bash", cost: 3, bonus: {}, desc: "Unlocks Shield Bash ability", requires: "guardian2", ability: "shieldBash" },
+    { id: "ability_heal", name: "Unlock: Healing Light", cost: 3, bonus: {}, desc: "Unlocks Healing Light ability", requires: "vitality2", ability: "healingLight" }
 ];
 
 // Research Technologies
@@ -299,6 +367,37 @@ const prestigeUpgrades = [
     { id: "pres6", name: "Starting Level", maxLevel: 20, cost: 3, bonusPerLevel: { startLevel: 1 }, desc: "+1 Starting Level" }
 ];
 
+// Achievements
+const achievements = [
+    { id: "ach1", name: "First Blood", desc: "Defeat your first enemy", req: { kills: 1 }, reward: { gold: 100 } },
+    { id: "ach2", name: "Monster Slayer", desc: "Defeat 100 enemies", req: { kills: 100 }, reward: { gold: 1000, attack: 5 } },
+    { id: "ach3", name: "Legendary Hunter", desc: "Defeat 1000 enemies", req: { kills: 1000 }, reward: { gold: 10000, attack: 20 } },
+    { id: "ach4", name: "Boss Slayer", desc: "Defeat your first boss", req: { bossKills: 1 }, reward: { gold: 500, defense: 10 } },
+    { id: "ach5", name: "Time Traveler", desc: "Reach Era 6", req: { era: 5 }, reward: { gold: 5000 } },
+    { id: "ach6", name: "Ascended", desc: "Reach Era 12", req: { era: 11 }, reward: { gold: 50000, attack: 50, defense: 50 } },
+    { id: "ach7", name: "Level 20", desc: "Reach level 20", req: { level: 20 }, reward: { gold: 2000 } },
+    { id: "ach8", name: "Level 50", desc: "Reach level 50", req: { level: 50 }, reward: { gold: 10000, maxHp: 100 } },
+    { id: "ach9", name: "Combo Master", desc: "Achieve a 20 hit combo", req: { combo: 20 }, reward: { critChance: 0.05 } },
+    { id: "ach10", name: "Millionaire", desc: "Accumulate 1,000,000 gold", req: { totalGold: 1000000 }, reward: { goldBonus: 0.1 } }
+];
+
+// Companions
+const companionData = [
+    { id: "wolf", name: "Spirit Wolf", cost: 5000, bonus: { attack: 15, critChance: 0.05 }, desc: "+15 ATK, +5% Crit", era: 0 },
+    { id: "dragon", name: "Baby Dragon", cost: 50000, bonus: { attack: 50, defense: 25 }, desc: "+50 ATK, +25 DEF", era: 2 },
+    { id: "robot", name: "Combat Drone", cost: 500000, bonus: { attack: 100, dodgeChance: 0.1 }, desc: "+100 ATK, +10% Dodge", era: 7 },
+    { id: "ai", name: "AI Companion", cost: 5000000, bonus: { attack: 200, defense: 100, critDamage: 0.5 }, desc: "+200 ATK, +100 DEF, +50% Crit Damage", era: 11 }
+];
+
+// Ascension Upgrades
+const ascensionUpgrades = [
+    { id: "asc1", name: "Power Ascension", maxLevel: 10, cost: 1, bonusPerLevel: { attack: 50 }, desc: "+50 ATK per level" },
+    { id: "asc2", name: "Fortitude Ascension", maxLevel: 10, cost: 1, bonusPerLevel: { defense: 25, maxHp: 100 }, desc: "+25 DEF, +100 HP per level" },
+    { id: "asc3", name: "Critical Mastery", maxLevel: 5, cost: 2, bonusPerLevel: { critChance: 0.02, critDamage: 0.1 }, desc: "+2% Crit Chance, +10% Crit Damage per level" },
+    { id: "asc4", name: "Elemental Resistance", maxLevel: 5, cost: 2, bonusPerLevel: { allResistance: 0.05 }, desc: "+5% All Resistances per level" },
+    { id: "asc5", name: "Wealth Ascension", maxLevel: 5, cost: 3, bonusPerLevel: { goldBonus: 0.5 }, desc: "+50% Gold per level" }
+];
+
 // Initialize game
 function init() {
     loadGame();
@@ -307,6 +406,9 @@ function init() {
     renderSkillTree();
     renderResearch();
     renderPrestigeUpgrades();
+    renderAchievements();
+    renderCompanions();
+    renderAscension();
     spawnEnemy();
     setupEventListeners();
     
@@ -315,7 +417,14 @@ function init() {
         if (gameState.autoAttack && gameState.enemy) {
             attack();
         }
+        updateAbilityUI();
     }, 1000);
+    
+    // Check achievements periodically
+    setInterval(() => {
+        checkAchievements();
+        renderAchievements();
+    }, 5000);
 }
 
 // Setup event listeners
@@ -323,6 +432,17 @@ function setupEventListeners() {
     document.getElementById('attack-btn').addEventListener('click', attack);
     document.getElementById('auto-attack-btn').addEventListener('click', toggleAutoAttack);
     document.getElementById('heal-btn').addEventListener('click', heal);
+    
+    // Ability buttons
+    const powerStrikeBtn = document.getElementById('powerStrike-btn');
+    if (powerStrikeBtn) powerStrikeBtn.addEventListener('click', () => useAbility('powerStrike'));
+    
+    const shieldBashBtn = document.getElementById('shieldBash-btn');
+    if (shieldBashBtn) shieldBashBtn.addEventListener('click', () => useAbility('shieldBash'));
+    
+    const healingLightBtn = document.getElementById('healingLight-btn');
+    if (healingLightBtn) healingLightBtn.addEventListener('click', () => useAbility('healingLight'));
+    
     document.getElementById('save-btn').addEventListener('click', saveGame);
     document.getElementById('load-btn').addEventListener('click', () => {
         loadGame();
@@ -331,6 +451,9 @@ function setupEventListeners() {
         renderSkillTree();
         renderResearch();
         renderPrestigeUpgrades();
+        renderAchievements();
+        renderCompanions();
+        renderAscension();
         addLog("Game loaded!");
     });
     document.getElementById('reset-btn').addEventListener('click', () => {
@@ -340,6 +463,10 @@ function setupEventListeners() {
         }
     });
     document.getElementById('prestige-btn').addEventListener('click', prestige);
+    
+    // Ascension button
+    const ascendBtn = document.getElementById('ascend-btn');
+    if (ascendBtn) ascendBtn.addEventListener('click', ascend);
     
     // Tab navigation
     document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -364,17 +491,41 @@ function spawnEnemy() {
     const floor = gameState.player.currentDungeonFloor;
     const floorMultiplier = 1 + (floor - 1) * 0.1;
     
-    const prefix = era.enemyPrefix[Math.floor(Math.random() * era.enemyPrefix.length)];
-    const suffix = era.enemySuffix[Math.floor(Math.random() * era.enemySuffix.length)];
+    // Check if this is a boss floor (every 10 floors)
+    const isBoss = floor % 10 === 0;
+    
+    let prefix, suffix, name;
+    if (isBoss) {
+        prefix = "BOSS";
+        suffix = era.enemySuffix[Math.floor(Math.random() * era.enemySuffix.length)];
+        name = `${prefix}: ${suffix} Lord`;
+    } else {
+        prefix = era.enemyPrefix[Math.floor(Math.random() * era.enemyPrefix.length)];
+        suffix = era.enemySuffix[Math.floor(Math.random() * era.enemySuffix.length)];
+        name = `${prefix} ${suffix}`;
+    }
+    
+    // Boss multipliers (3x hp, 1.5x attack/defense, 3x rewards)
+    const bossHpMult = isBoss ? 3 : 1;
+    const bossStatMult = isBoss ? 1.5 : 1;
+    const bossRewardMult = isBoss ? 3 : 1;
+    
+    // Random elemental type
+    const elementTypes = Object.values(ELEMENT_TYPES);
+    const element = elementTypes[Math.floor(Math.random() * elementTypes.length)];
     
     gameState.enemy = {
-        name: `${prefix} ${suffix}`,
-        maxHp: Math.floor(era.baseEnemyStats.hp * floorMultiplier),
-        hp: Math.floor(era.baseEnemyStats.hp * floorMultiplier),
-        attack: Math.floor(era.baseEnemyStats.attack * floorMultiplier),
-        defense: Math.floor(era.baseEnemyStats.defense * floorMultiplier),
-        gold: Math.floor(era.baseEnemyStats.gold * floorMultiplier),
-        xp: Math.floor(era.baseEnemyStats.xp * floorMultiplier)
+        name: name,
+        isBoss: isBoss,
+        element: element,
+        maxHp: Math.floor(era.baseEnemyStats.hp * floorMultiplier * bossHpMult),
+        hp: Math.floor(era.baseEnemyStats.hp * floorMultiplier * bossHpMult),
+        attack: Math.floor(era.baseEnemyStats.attack * floorMultiplier * bossStatMult),
+        defense: Math.floor(era.baseEnemyStats.defense * floorMultiplier * bossStatMult),
+        gold: Math.floor(era.baseEnemyStats.gold * floorMultiplier * bossRewardMult),
+        xp: Math.floor(era.baseEnemyStats.xp * floorMultiplier * bossRewardMult),
+        stunned: false,
+        stunnedUntil: 0
     };
     
     updateEnemyUI();
@@ -384,15 +535,49 @@ function spawnEnemy() {
 function attack() {
     if (!gameState.enemy) return;
     
+    // Check if enemy is stunned
+    if (gameState.enemy.stunned && Date.now() < gameState.enemy.stunnedUntil) {
+        addLog(`${gameState.enemy.name} is stunned!`);
+    }
+    
     // Add player attack animation
     animatePlayerAttack();
     
     const playerAttack = getPlayerStat('attack');
     const enemyDefense = gameState.enemy.defense;
-    const damage = Math.max(1, playerAttack - enemyDefense);
+    let baseDamage = Math.max(1, playerAttack - enemyDefense);
     
-    gameState.enemy.hp -= damage;
-    addLog(`You deal <span class="log-damage">${damage}</span> damage to ${gameState.enemy.name}`);
+    // Check for critical hit
+    const critChance = getPlayerStat('critChance') || 0.1;
+    const isCrit = Math.random() < critChance;
+    if (isCrit) {
+        const critDamage = getPlayerStat('critDamage') || 2.0;
+        baseDamage = Math.floor(baseDamage * critDamage);
+        addLog(`<span class="log-crit">CRITICAL HIT!</span> You deal <span class="log-damage">${baseDamage}</span> damage to ${gameState.enemy.name}`);
+    } else {
+        addLog(`You deal <span class="log-damage">${baseDamage}</span> damage to ${gameState.enemy.name}`);
+    }
+    
+    // Combo system - increment combo
+    gameState.player.comboCount++;
+    const comboMultiplier = 1 + Math.min(gameState.player.comboCount * 0.05, 0.5); // Max 50% bonus at 10 combo
+    const finalDamage = Math.floor(baseDamage * comboMultiplier);
+    
+    if (gameState.player.comboCount > 1) {
+        addLog(`<span class="log-combo">COMBO x${gameState.player.comboCount}! (+${Math.floor((comboMultiplier - 1) * 100)}% damage)</span>`);
+    }
+    
+    gameState.enemy.hp -= finalDamage;
+    
+    // Lifesteal
+    const lifesteal = getPlayerBonus('lifesteal');
+    if (lifesteal > 0) {
+        const healAmount = Math.floor(finalDamage * lifesteal);
+        gameState.player.hp = Math.min(gameState.player.hp + healAmount, getPlayerStat('maxHp'));
+        if (healAmount > 0) {
+            addLog(`<span class="log-heal">Lifesteal: +${healAmount} HP</span>`);
+        }
+    }
     
     // Add damage animation to enemy
     setTimeout(() => {
@@ -407,33 +592,67 @@ function attack() {
         return;
     }
     
-    // Enemy counter-attack
-    setTimeout(() => {
-        animateEnemyAttack();
-        
-        const enemyAttack = gameState.enemy.attack;
-        const playerDefense = getPlayerStat('defense');
-        const enemyDamage = Math.max(1, enemyAttack - playerDefense);
-        
-        gameState.player.hp -= enemyDamage;
-        addLog(`${gameState.enemy.name} deals <span class="log-damage">${enemyDamage}</span> damage to you`);
-        
-        // Add damage animation to player
+    // Enemy counter-attack (unless stunned)
+    if (!gameState.enemy.stunned || Date.now() >= gameState.enemy.stunnedUntil) {
         setTimeout(() => {
-            animatePlayerDamage();
-        }, 300);
-        
-        if (gameState.player.hp <= 0) {
-            gameState.player.hp = Math.floor(getPlayerStat('maxHp') * 0.5);
-            gameState.player.gold = Math.floor(gameState.player.gold * 0.9);
-            addLog(`<span class="log-damage">You were defeated!</span> Lost 10% gold and respawned with 50% HP`);
+            enemyCounterAttack();
+        }, 600);
+    } else {
+        // Unstun if time has passed
+        if (Date.now() >= gameState.enemy.stunnedUntil) {
+            gameState.enemy.stunned = false;
         }
-        
+    }
+}
+
+function enemyCounterAttack() {
+    if (!gameState.enemy) return;
+    
+    // Check for dodge
+    const dodgeChance = getPlayerStat('dodgeChance') || 0.05;
+    const dodged = Math.random() < dodgeChance;
+    
+    if (dodged) {
+        addLog(`<span class="log-heal">You dodged the attack!</span>`);
         updateUI();
-    }, 600); // Delay for enemy counter-attack
+        return;
+    }
+    
+    animateEnemyAttack();
+    
+    const enemyAttack = gameState.enemy.attack;
+    const playerDefense = getPlayerStat('defense');
+    
+    // Apply elemental resistance
+    let damage = Math.max(1, enemyAttack - playerDefense);
+    if (gameState.enemy.element && gameState.player.elementalResistances[gameState.enemy.element]) {
+        const resistance = gameState.player.elementalResistances[gameState.enemy.element];
+        damage = Math.floor(damage * (1 - resistance));
+        if (resistance > 0) {
+            addLog(`<span class="log-heal">Elemental resistance reduced damage by ${Math.floor(resistance * 100)}%</span>`);
+        }
+    }
+    
+    gameState.player.hp -= damage;
+    addLog(`${gameState.enemy.name} deals <span class="log-damage">${damage}</span> ${gameState.enemy.element} damage to you`);
+    
+    // Add damage animation to player
+    setTimeout(() => {
+        animatePlayerDamage();
+    }, 300);
+    
+    if (gameState.player.hp <= 0) {
+        gameState.player.hp = Math.floor(getPlayerStat('maxHp') * 0.5);
+        gameState.player.gold = Math.floor(gameState.player.gold * 0.9);
+        gameState.player.comboCount = 0; // Reset combo on death
+        addLog(`<span class="log-damage">You were defeated!</span> Lost 10% gold and respawned with 50% HP. Combo reset.`);
+    }
+    
+    updateUI();
 }
 
 function enemyDefeated() {
+    const isBoss = gameState.enemy.isBoss;
     const goldGain = Math.floor(gameState.enemy.gold * (1 + getPlayerBonus('goldBonus')));
     const xpGain = Math.floor(gameState.enemy.xp * (1 + getPlayerBonus('xpBonus')));
     
@@ -441,7 +660,16 @@ function enemyDefeated() {
     gameState.player.xp += xpGain;
     gameState.player.totalKills++;
     
-    addLog(`<span class="log-kill">${gameState.enemy.name} defeated!</span> +${goldGain} gold, +${xpGain} XP`);
+    // Combo bonus on kill
+    if (gameState.player.comboCount >= 5) {
+        addLog(`<span class="log-combo">Combo finished! x${gameState.player.comboCount}</span>`);
+    }
+    
+    if (isBoss) {
+        addLog(`<span class="log-boss">💀 BOSS DEFEATED! 💀</span> +${goldGain} gold, +${xpGain} XP`);
+    } else {
+        addLog(`<span class="log-kill">${gameState.enemy.name} defeated!</span> +${goldGain} gold, +${xpGain} XP`);
+    }
     
     // Check for level up
     while (gameState.player.xp >= gameState.player.xpNeeded) {
@@ -460,6 +688,9 @@ function enemyDefeated() {
         gameState.player.currentDungeonFloor = 1;
         addLog(`<span class="log-kill">Entered new era: ${eras[gameState.player.currentEraIndex].name}!</span>`);
     }
+    
+    // Check and update achievements
+    checkAchievements();
     
     spawnEnemy();
     updateUI();
@@ -512,6 +743,175 @@ function heal() {
     updateUI();
     renderResearch();
     renderShop();
+}
+
+// Combat Abilities
+function useAbility(abilityKey) {
+    const ability = ABILITIES[abilityKey];
+    const abilityState = gameState.abilities[abilityKey];
+    
+    if (!abilityState.unlocked) {
+        addLog("Ability not unlocked!");
+        return;
+    }
+    
+    const now = Date.now();
+    const cooldownRemaining = abilityState.lastUsed + ability.cooldown - now;
+    
+    if (cooldownRemaining > 0) {
+        addLog(`Ability on cooldown! ${Math.ceil(cooldownRemaining / 1000)}s remaining`);
+        return;
+    }
+    
+    abilityState.lastUsed = now;
+    
+    if (abilityKey === 'powerStrike') {
+        if (!gameState.enemy) {
+            addLog("No enemy to attack!");
+            return;
+        }
+        const playerAttack = getPlayerStat('attack');
+        const damage = Math.floor((playerAttack - gameState.enemy.defense) * ability.damage);
+        gameState.enemy.hp -= damage;
+        addLog(`<span class="log-ability">⚡ POWER STRIKE! ⚡</span> Dealt ${damage} damage!`);
+        animatePlayerAttack();
+        setTimeout(() => animateEnemyDamage(), 300);
+        updateEnemyUI();
+        if (gameState.enemy.hp <= 0) {
+            enemyDefeated();
+        }
+    } else if (abilityKey === 'shieldBash') {
+        if (!gameState.enemy) {
+            addLog("No enemy to attack!");
+            return;
+        }
+        const playerAttack = getPlayerStat('attack');
+        const damage = Math.floor((playerAttack - gameState.enemy.defense) * ability.damage);
+        gameState.enemy.hp -= damage;
+        gameState.enemy.stunned = true;
+        gameState.enemy.stunnedUntil = now + ability.stun;
+        addLog(`<span class="log-ability">🛡️ SHIELD BASH! 🛡️</span> Dealt ${damage} damage and stunned enemy for 2s!`);
+        animatePlayerAttack();
+        setTimeout(() => animateEnemyDamage(), 300);
+        updateEnemyUI();
+        if (gameState.enemy.hp <= 0) {
+            enemyDefeated();
+        }
+    } else if (abilityKey === 'healingLight') {
+        const maxHp = getPlayerStat('maxHp');
+        const healAmount = Math.floor(maxHp * ability.heal);
+        gameState.player.hp = Math.min(gameState.player.hp + healAmount, maxHp);
+        addLog(`<span class="log-ability">✨ HEALING LIGHT! ✨</span> Restored ${healAmount} HP!`);
+        animatePlayerHeal();
+        updateUI();
+    }
+    
+    updateAbilityUI();
+}
+
+function updateAbilityUI() {
+    const now = Date.now();
+    for (let abilityKey in gameState.abilities) {
+        const btn = document.getElementById(`${abilityKey}-btn`);
+        if (!btn) continue;
+        
+        const ability = ABILITIES[abilityKey];
+        const abilityState = gameState.abilities[abilityKey];
+        
+        if (!abilityState.unlocked) {
+            btn.disabled = true;
+            btn.textContent = `🔒 ${ability.name}`;
+            continue;
+        }
+        
+        const cooldownRemaining = abilityState.lastUsed + ability.cooldown - now;
+        if (cooldownRemaining > 0) {
+            btn.disabled = true;
+            btn.textContent = `${ability.name} (${Math.ceil(cooldownRemaining / 1000)}s)`;
+        } else {
+            btn.disabled = false;
+            btn.textContent = ability.name;
+        }
+    }
+}
+
+// Achievement System
+function checkAchievements() {
+    achievements.forEach(ach => {
+        if (gameState.achievements[ach.id]) return; // Already unlocked
+        
+        let unlocked = false;
+        
+        if (ach.req.kills && gameState.player.totalKills >= ach.req.kills) unlocked = true;
+        if (ach.req.bossKills) {
+            const bossKills = Math.floor(gameState.player.totalKills / 10);
+            if (bossKills >= ach.req.bossKills) unlocked = true;
+        }
+        if (ach.req.era && gameState.player.currentEraIndex >= ach.req.era) unlocked = true;
+        if (ach.req.level && gameState.player.level >= ach.req.level) unlocked = true;
+        if (ach.req.combo && gameState.player.comboCount >= ach.req.combo) unlocked = true;
+        if (ach.req.totalGold && gameState.player.gold >= ach.req.totalGold) unlocked = true;
+        
+        if (unlocked) {
+            gameState.achievements[ach.id] = true;
+            addLog(`<span class="log-achievement">🏆 Achievement Unlocked: ${ach.name}!</span>`);
+            
+            // Apply rewards
+            if (ach.reward.gold) {
+                gameState.player.gold += ach.reward.gold;
+                addLog(`<span class="log-heal">+${ach.reward.gold} gold reward!</span>`);
+            }
+            if (ach.reward.attack) gameState.player.attack += ach.reward.attack;
+            if (ach.reward.defense) gameState.player.defense += ach.reward.defense;
+            if (ach.reward.maxHp) {
+                gameState.player.maxHp += ach.reward.maxHp;
+                gameState.player.hp += ach.reward.maxHp;
+            }
+            if (ach.reward.critChance) gameState.player.critChance += ach.reward.critChance;
+            if (ach.reward.goldBonus) {
+                // This is handled through getPlayerBonus
+            }
+        }
+    });
+}
+
+// Companion System
+function buyCompanion(companionId) {
+    const companion = companionData.find(c => c.id === companionId);
+    if (!companion) return;
+    
+    if (gameState.player.gold < companion.cost) {
+        addLog("Not enough gold to purchase companion!");
+        return;
+    }
+    
+    if (gameState.companions.includes(companionId)) {
+        addLog("You already own this companion!");
+        return;
+    }
+    
+    gameState.player.gold -= companion.cost;
+    gameState.companions.push(companionId);
+    
+    if (!gameState.player.companion) {
+        gameState.player.companion = companionId;
+    }
+    
+    addLog(`<span class="log-heal">Purchased ${companion.name}!</span>`);
+    updateUI();
+    renderCompanions();
+}
+
+function equipCompanion(companionId) {
+    if (!gameState.companions.includes(companionId)) {
+        addLog("You don't own this companion!");
+        return;
+    }
+    
+    gameState.player.companion = companionId;
+    addLog(`Equipped ${companionData.find(c => c.id === companionId).name}!`);
+    updateUI();
+    renderCompanions();
 }
 
 // Animation functions
@@ -614,6 +1014,27 @@ function getPlayerStat(stat) {
         }
     }
     
+    // Ascension bonuses
+    for (let upgId in gameState.ascension.upgrades) {
+        const level = gameState.ascension.upgrades[upgId];
+        const upgrade = ascensionUpgrades.find(u => u.id === upgId);
+        if (upgrade && upgrade.bonusPerLevel[stat]) {
+            value += upgrade.bonusPerLevel[stat] * level;
+        }
+        // All resistance bonus
+        if (upgrade && upgrade.bonusPerLevel.allResistance && stat.includes('Resistance')) {
+            value += upgrade.bonusPerLevel.allResistance * level;
+        }
+    }
+    
+    // Companion bonuses
+    if (gameState.player.companion) {
+        const companion = companionData.find(c => c.id === gameState.player.companion);
+        if (companion && companion.bonus[stat]) {
+            value += companion.bonus[stat];
+        }
+    }
+    
     return value;
 }
 
@@ -636,6 +1057,25 @@ function getPlayerBonus(bonusType) {
         const upgrade = prestigeUpgrades.find(u => u.id === upgId);
         if (upgrade && upgrade.bonusPerLevel[bonusType]) {
             bonus += upgrade.bonusPerLevel[bonusType] * level;
+        }
+    }
+    
+    // Ascension bonuses
+    for (let upgId in gameState.ascension.upgrades) {
+        const level = gameState.ascension.upgrades[upgId];
+        const upgrade = ascensionUpgrades.find(u => u.id === upgId);
+        if (upgrade && upgrade.bonusPerLevel[bonusType]) {
+            bonus += upgrade.bonusPerLevel[bonusType] * level;
+        }
+    }
+    
+    // Achievement bonuses
+    for (let achId in gameState.achievements) {
+        if (gameState.achievements[achId]) {
+            const ach = achievements.find(a => a.id === achId);
+            if (ach && ach.reward[bonusType]) {
+                bonus += ach.reward[bonusType];
+            }
         }
     }
     
@@ -765,9 +1205,18 @@ function unlockSkillNode(nodeId) {
     
     gameState.skillPoints -= node.cost;
     gameState.skillTree[nodeId] = true;
-    addLog(`Unlocked ${node.name}!`);
+    
+    // Check if this unlocks an ability
+    if (node.ability) {
+        gameState.abilities[node.ability].unlocked = true;
+        addLog(`Unlocked ${node.name}! Ability ${ABILITIES[node.ability].name} is now available!`);
+    } else {
+        addLog(`Unlocked ${node.name}!`);
+    }
+    
     updateUI();
     renderSkillTree();
+    updateAbilityUI();
 }
 
 // Research
@@ -934,6 +1383,232 @@ function updatePrestigeDisplay() {
     document.getElementById('next-prestige-points').textContent = Math.floor(gameState.player.level / 20);
 }
 
+// Achievements Rendering
+function renderAchievements() {
+    const container = document.getElementById('achievements-container');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    achievements.forEach(ach => {
+        const unlocked = gameState.achievements[ach.id] || false;
+        
+        const div = document.createElement('div');
+        div.className = `achievement-item ${unlocked ? 'unlocked' : 'locked'}`;
+        div.innerHTML = `
+            <h4>${unlocked ? '🏆' : '🔒'} ${ach.name}</h4>
+            <div class="achievement-desc">${ach.desc}</div>
+            <div class="achievement-reward">Reward: ${formatReward(ach.reward)}</div>
+            ${unlocked ? '<span class="achievement-status">✓ Completed</span>' : '<span class="achievement-status">Not Completed</span>'}
+        `;
+        container.appendChild(div);
+    });
+}
+
+function formatReward(reward) {
+    const parts = [];
+    if (reward.gold) parts.push(`${reward.gold} gold`);
+    if (reward.attack) parts.push(`+${reward.attack} ATK`);
+    if (reward.defense) parts.push(`+${reward.defense} DEF`);
+    if (reward.maxHp) parts.push(`+${reward.maxHp} HP`);
+    if (reward.critChance) parts.push(`+${Math.floor(reward.critChance * 100)}% Crit`);
+    if (reward.goldBonus) parts.push(`+${Math.floor(reward.goldBonus * 100)}% Gold`);
+    return parts.join(', ');
+}
+
+// Companions Rendering
+function renderCompanions() {
+    const container = document.getElementById('companions-container');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    companionData.forEach(companion => {
+        const owned = gameState.companions.includes(companion.id);
+        const equipped = gameState.player.companion === companion.id;
+        const canBuy = gameState.player.currentEraIndex >= companion.era;
+        
+        const div = document.createElement('div');
+        div.className = `companion-item ${owned ? 'owned' : 'locked'} ${equipped ? 'equipped' : ''}`;
+        div.innerHTML = `
+            <h4>${companion.name}</h4>
+            <div class="companion-desc">${companion.desc}</div>
+            <div class="companion-cost">Cost: ${companion.cost} gold</div>
+            ${!owned && canBuy ? `<button class="btn btn-primary buy-companion-btn" data-companion-id="${companion.id}">Buy</button>` : ''}
+            ${owned && !equipped ? `<button class="btn btn-success equip-companion-btn" data-companion-id="${companion.id}">Equip</button>` : ''}
+            ${equipped ? '<span class="companion-status">✓ Equipped</span>' : ''}
+            ${!canBuy && !owned ? `<span class="companion-status">🔒 Unlocks in ${eras[companion.era].name}</span>` : ''}
+        `;
+        container.appendChild(div);
+    });
+    
+    // Event listeners
+    container.querySelectorAll('.buy-companion-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            buyCompanion(this.dataset.companionId);
+        });
+    });
+    
+    container.querySelectorAll('.equip-companion-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            equipCompanion(this.dataset.companionId);
+        });
+    });
+}
+
+// Ascension Rendering
+function renderAscension() {
+    const container = document.getElementById('ascension-upgrades-container');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    ascensionUpgrades.forEach(upgrade => {
+        const currentLevel = gameState.ascension.upgrades[upgrade.id] || 0;
+        const canUpgrade = currentLevel < upgrade.maxLevel && gameState.ascension.points >= upgrade.cost;
+        
+        const div = document.createElement('div');
+        div.className = 'ascension-upgrade';
+        div.innerHTML = `
+            <h4>${upgrade.name}</h4>
+            <div class="ascension-upgrade-level">Level: ${currentLevel}/${upgrade.maxLevel}</div>
+            <div class="ascension-upgrade-cost">Cost: ${upgrade.cost} AP</div>
+            <div class="ascension-upgrade-bonus">${upgrade.desc}</div>
+            ${currentLevel < upgrade.maxLevel ? `<button class="btn btn-primary ascension-upgrade-btn" data-upgrade-id="${upgrade.id}" ${!canUpgrade ? 'disabled' : ''}>Upgrade</button>` : '<span style="color: #9C27B0; font-weight: bold;">MAX</span>'}
+        `;
+        container.appendChild(div);
+    });
+    
+    // Event listeners
+    container.querySelectorAll('.ascension-upgrade-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            buyAscensionUpgrade(this.dataset.upgradeId);
+        });
+    });
+    
+    updateAscensionDisplay();
+}
+
+function buyAscensionUpgrade(upgId) {
+    const upgrade = ascensionUpgrades.find(u => u.id === upgId);
+    if (!upgrade) return;
+    
+    const currentLevel = gameState.ascension.upgrades[upgId] || 0;
+    if (currentLevel >= upgrade.maxLevel || gameState.ascension.points < upgrade.cost) {
+        addLog("Cannot upgrade!");
+        return;
+    }
+    
+    gameState.ascension.points -= upgrade.cost;
+    gameState.ascension.upgrades[upgId] = currentLevel + 1;
+    addLog(`Upgraded ${upgrade.name} to level ${currentLevel + 1}!`);
+    renderAscension();
+}
+
+function ascend() {
+    if (gameState.prestige.level < 5) {
+        addLog("You need at least 5 prestige levels to ascend!");
+        return;
+    }
+    
+    if (!confirm("Are you sure you want to ascend? This will reset all progress including prestige but grant ascension points!")) {
+        return;
+    }
+    
+    // Calculate ascension points (based on prestige level)
+    const pointsGained = Math.floor(gameState.prestige.level / 5);
+    gameState.ascension.level++;
+    gameState.ascension.points += pointsGained;
+    
+    // Reset everything except ascension
+    const ascensionUpgradesCopy = {...gameState.ascension.upgrades};
+    const ascensionLevel = gameState.ascension.level;
+    const ascensionPoints = gameState.ascension.points;
+    
+    // Full reset
+    const newState = {
+        player: {
+            level: 1,
+            xp: 0,
+            xpNeeded: 100,
+            hp: 100,
+            maxHp: 100,
+            attack: 10,
+            defense: 5,
+            gold: 0,
+            totalKills: 0,
+            currentEraIndex: 0,
+            currentDungeonFloor: 1,
+            equipment: {
+                weapon: null,
+                armor: null,
+                accessory: null
+            },
+            critChance: 0.1,
+            critDamage: 2.0,
+            dodgeChance: 0.05,
+            comboCount: 0,
+            elementalResistances: {
+                fire: 0,
+                ice: 0,
+                lightning: 0,
+                poison: 0
+            },
+            companion: null
+        },
+        enemy: null,
+        autoAttack: false,
+        skillTree: {},
+        skillPoints: 0,
+        research: {},
+        prestige: {
+            level: 0,
+            points: 0,
+            upgrades: {}
+        },
+        abilities: {
+            powerStrike: { unlocked: false, lastUsed: 0 },
+            shieldBash: { unlocked: false, lastUsed: 0 },
+            healingLight: { unlocked: false, lastUsed: 0 }
+        },
+        achievements: {},
+        quests: {
+            daily: [],
+            weekly: []
+        },
+        ascension: {
+            level: ascensionLevel,
+            points: ascensionPoints,
+            upgrades: ascensionUpgradesCopy
+        },
+        factions: {},
+        companions: []
+    };
+    
+    Object.assign(gameState, newState);
+    
+    addLog(`<span class="log-boss">✨ ASCENDED! ✨ Gained ${pointsGained} ascension points!</span>`);
+    spawnEnemy();
+    updateUI();
+    renderShop();
+    renderSkillTree();
+    renderResearch();
+    renderPrestigeUpgrades();
+    renderAscension();
+    renderAchievements();
+    renderCompanions();
+}
+
+function updateAscensionDisplay() {
+    const levelEl = document.getElementById('ascension-level');
+    const pointsEl = document.getElementById('available-ascension-points');
+    const nextEl = document.getElementById('next-ascension-points');
+    
+    if (levelEl) levelEl.textContent = gameState.ascension.level;
+    if (pointsEl) pointsEl.textContent = gameState.ascension.points;
+    if (nextEl) nextEl.textContent = Math.floor(gameState.prestige.level / 5);
+}
+
 // UI Updates
 function updateUI() {
     // Player stats
@@ -980,9 +1655,29 @@ function updateUI() {
 function updateEnemyUI() {
     if (!gameState.enemy) return;
     
-    document.getElementById('enemy-name').textContent = gameState.enemy.name;
+    let enemyNameHTML = gameState.enemy.name;
+    if (gameState.enemy.isBoss) {
+        enemyNameHTML = `<span class="boss-name">💀 ${gameState.enemy.name} 💀</span>`;
+    }
+    document.getElementById('enemy-name').innerHTML = enemyNameHTML;
+    
+    const elementIcons = {
+        fire: '🔥',
+        ice: '❄️',
+        lightning: '⚡',
+        poison: '☠️',
+        physical: '⚔️'
+    };
+    const elementIcon = elementIcons[gameState.enemy.element] || '';
+    
     document.getElementById('enemy-attack').textContent = gameState.enemy.attack;
     document.getElementById('enemy-defense').textContent = gameState.enemy.defense;
+    
+    // Add element display
+    const enemyElement = document.getElementById('enemy-element');
+    if (enemyElement) {
+        enemyElement.textContent = `${elementIcon} ${gameState.enemy.element}`;
+    }
     
     const hpPercent = (gameState.enemy.hp / gameState.enemy.maxHp) * 100;
     const enemyHpBar = document.getElementById('enemy-hp-bar');

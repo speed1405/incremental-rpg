@@ -285,6 +285,31 @@ header h1 {
     margin-bottom: 20px;
 }
 
+.btn-ascension {
+    background: linear-gradient(135deg, #4A148C 0%, #7B1FA2 100%);
+    color: white;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.btn-ability {
+    background: #00BCD4;
+    color: white;
+    font-size: 0.9em;
+    padding: 8px 16px;
+}
+
+.btn-ability:hover {
+    background: #0097A7;
+}
+
+.ability-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
 .combat-log {
     background: #f5f5f5;
     padding: 15px;
@@ -314,6 +339,50 @@ header h1 {
 .log-kill {
     color: #9C27B0;
     font-weight: bold;
+}
+
+.log-crit {
+    color: #FF9800;
+    font-weight: bold;
+    text-shadow: 0 0 5px #FF9800;
+}
+
+.log-combo {
+    color: #2196F3;
+    font-weight: bold;
+}
+
+.log-boss {
+    color: #D32F2F;
+    font-weight: bold;
+    font-size: 1.1em;
+    text-shadow: 0 0 5px #D32F2F;
+}
+
+.log-ability {
+    color: #00BCD4;
+    font-weight: bold;
+}
+
+.log-achievement {
+    color: #FFD700;
+    font-weight: bold;
+    text-shadow: 0 0 5px #FFD700;
+}
+
+.boss-name {
+    color: #D32F2F;
+    text-shadow: 0 0 10px #D32F2F;
+    animation: pulse-boss 2s ease-in-out infinite;
+}
+
+@keyframes pulse-boss {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
 }
 
 .tabs {
@@ -584,6 +653,155 @@ header h1 {
 }
 
 .prestige-upgrade-bonus {
+    font-weight: bold;
+    color: #4CAF50;
+    margin-bottom: 10px;
+}
+
+/* Achievements Styles */
+.achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 15px;
+}
+
+.achievement-item {
+    background: #f9f9f9;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    padding: 15px;
+    transition: all 0.3s ease;
+}
+
+.achievement-item.unlocked {
+    background: #FFF9C4;
+    border-color: #FFD700;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.achievement-item.locked {
+    opacity: 0.6;
+}
+
+.achievement-item h4 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.achievement-desc {
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.achievement-reward {
+    font-weight: bold;
+    color: #4CAF50;
+    margin-bottom: 10px;
+}
+
+.achievement-status {
+    font-size: 0.9em;
+    color: #999;
+}
+
+/* Companions Styles */
+.companions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.companion-item {
+    background: #f9f9f9;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    padding: 15px;
+    transition: all 0.3s ease;
+}
+
+.companion-item.owned {
+    background: #E8F5E9;
+    border-color: #4CAF50;
+}
+
+.companion-item.equipped {
+    background: #C8E6C9;
+    border-color: #2E7D32;
+    box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
+}
+
+.companion-item.locked {
+    opacity: 0.6;
+}
+
+.companion-item h4 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.companion-desc {
+    font-weight: bold;
+    color: #4CAF50;
+    margin-bottom: 10px;
+}
+
+.companion-cost {
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.companion-status {
+    font-size: 0.9em;
+    color: #999;
+}
+
+/* Ascension Styles */
+.ascension-info {
+    background: #E1BEE7;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.ascension-info p {
+    margin-bottom: 10px;
+    font-size: 1.1em;
+}
+
+.ascension-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.ascension-upgrade {
+    background: #f9f9f9;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    padding: 15px;
+    transition: all 0.3s ease;
+}
+
+.ascension-upgrade h4 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.ascension-upgrade-level {
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.ascension-upgrade-cost {
+    font-weight: bold;
+    color: #7B1FA2;
+    margin-bottom: 10px;
+}
+
+.ascension-upgrade-bonus {
     font-weight: bold;
     color: #4CAF50;
     margin-bottom: 10px;
