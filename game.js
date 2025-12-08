@@ -625,11 +625,22 @@ function enemyCounterAttack() {
     
     // Apply elemental resistance
     let damage = Math.max(1, enemyAttack - playerDefense);
-    if (gameState.enemy.element && gameState.player.elementalResistances[gameState.enemy.element]) {
-        const resistance = gameState.player.elementalResistances[gameState.enemy.element];
-        damage = Math.floor(damage * (1 - resistance));
-        if (resistance > 0) {
-            addLog(`<span class="log-heal">Elemental resistance reduced damage by ${Math.floor(resistance * 100)}%</span>`);
+    if (gameState.enemy.element && gameState.enemy.element !== 'physical') {
+        const baseResistance = gameState.player.elementalResistances[gameState.enemy.element] || 0;
+        
+        // Add ascension all-resistance bonus
+        let totalResistance = baseResistance;
+        for (let upgId in gameState.ascension.upgrades) {
+            const level = gameState.ascension.upgrades[upgId];
+            const upgrade = ascensionUpgrades.find(u => u.id === upgId);
+            if (upgrade && upgrade.bonusPerLevel.allResistance) {
+                totalResistance += upgrade.bonusPerLevel.allResistance * level;
+            }
+        }
+        
+        damage = Math.floor(damage * (1 - totalResistance));
+        if (totalResistance > 0) {
+            addLog(`<span class="log-heal">Elemental resistance reduced damage by ${Math.floor(totalResistance * 100)}%</span>`);
         }
     }
     
@@ -1021,11 +1032,6 @@ function getPlayerStat(stat) {
         const upgrade = ascensionUpgrades.find(u => u.id === upgId);
         if (upgrade && upgrade.bonusPerLevel[stat]) {
             value += upgrade.bonusPerLevel[stat] * level;
-        }
-        // All resistance bonus applies to elemental resistances
-        if (upgrade && upgrade.bonusPerLevel.allResistance && 
-            (stat === 'fire' || stat === 'ice' || stat === 'lightning' || stat === 'poison')) {
-            value += upgrade.bonusPerLevel.allResistance * level;
         }
     }
     
@@ -1522,9 +1528,10 @@ function ascend() {
     gameState.ascension.level++;
     gameState.ascension.points += pointsGained;
     
-    // Preserve achievements and companions across ascension
+    // Preserve achievements, companions, and equipped companion across ascension
     const achievementsCopy = {...gameState.achievements};
     const companionsCopy = [...gameState.companions];
+    const equippedCompanion = gameState.player.companion;
     
     // Reset everything except ascension
     const ascensionUpgradesCopy = {...gameState.ascension.upgrades};
@@ -1560,7 +1567,7 @@ function ascend() {
                 lightning: 0,
                 poison: 0
             },
-            companion: null
+            companion: equippedCompanion
         },
         enemy: null,
         autoAttack: false,
