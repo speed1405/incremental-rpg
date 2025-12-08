@@ -844,7 +844,8 @@ function checkAchievements() {
         
         if (ach.req.kills && gameState.player.totalKills >= ach.req.kills) unlocked = true;
         if (ach.req.bossKills) {
-            const bossKills = Math.floor(gameState.player.totalKills / 10);
+            // Bosses appear every 10 floors, floors advance every 5 kills, so bosses every 50 kills
+            const bossKills = Math.floor(gameState.player.totalKills / 50);
             if (bossKills >= ach.req.bossKills) unlocked = true;
         }
         if (ach.req.era && gameState.player.currentEraIndex >= ach.req.era) unlocked = true;
@@ -1021,8 +1022,9 @@ function getPlayerStat(stat) {
         if (upgrade && upgrade.bonusPerLevel[stat]) {
             value += upgrade.bonusPerLevel[stat] * level;
         }
-        // All resistance bonus
-        if (upgrade && upgrade.bonusPerLevel.allResistance && stat.includes('Resistance')) {
+        // All resistance bonus applies to elemental resistances
+        if (upgrade && upgrade.bonusPerLevel.allResistance && 
+            (stat === 'fire' || stat === 'ice' || stat === 'lightning' || stat === 'poison')) {
             value += upgrade.bonusPerLevel.allResistance * level;
         }
     }
@@ -1520,6 +1522,10 @@ function ascend() {
     gameState.ascension.level++;
     gameState.ascension.points += pointsGained;
     
+    // Preserve achievements and companions across ascension
+    const achievementsCopy = {...gameState.achievements};
+    const companionsCopy = [...gameState.companions];
+    
     // Reset everything except ascension
     const ascensionUpgradesCopy = {...gameState.ascension.upgrades};
     const ascensionLevel = gameState.ascension.level;
@@ -1571,7 +1577,7 @@ function ascend() {
             shieldBash: { unlocked: false, lastUsed: 0 },
             healingLight: { unlocked: false, lastUsed: 0 }
         },
-        achievements: {},
+        achievements: achievementsCopy,
         quests: {
             daily: [],
             weekly: []
@@ -1582,7 +1588,7 @@ function ascend() {
             upgrades: ascensionUpgradesCopy
         },
         factions: {},
-        companions: []
+        companions: companionsCopy
     };
     
     Object.assign(gameState, newState);
