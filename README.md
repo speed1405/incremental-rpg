@@ -134,6 +134,10 @@ The game is designed for incremental progression:
 - Multiple progression paths keep the game interesting
 - Prestige system allows for long-term replayability
 
+## 💡 Contributing
+
+Interested in contributing to the game? Check out [SUGGESTIONS.md](SUGGESTIONS.md) for a comprehensive list of future development ideas and feature suggestions! Whether you're looking to add new features, improve existing mechanics, or enhance the UI/UX, there are plenty of opportunities to contribute.
+
 ---
 
 **Enjoy your journey through time!** ⏰⚔️🛡️
